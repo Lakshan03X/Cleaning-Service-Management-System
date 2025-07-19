@@ -5,6 +5,8 @@ import express from "express";
 import dotenv from "dotenv";
 import { connectDB } from "./config/dbConnect.js";
 import authRoutes from "./routes/auth.route.js";
+import serviceRoute from "./routes/services.route.js";
+import bookingRoute from "./routes/booking.route.js";
 import "./config/passport.js";
 
 dotenv.config();
@@ -39,6 +41,8 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use("/auth", authRoutes);
+app.use("/service", serviceRoute);
+app.use("/booking", bookingRoute);
 
 const PORT = process.env.PORT || 5001;
 connectDB().then(() => {

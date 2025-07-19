@@ -2,9 +2,9 @@ import BookingModel from "../models/booking.model.js";
 
 // Create a new booking
 export const createBooking = async (req, res) => {
-  const { fullName, email, serviceType, date, time, address, phone } = req.body;
+  const { customerName, email, serviceType, date, time, address, phone } = req.body;
 
-  if (!fullName || !email || !serviceType || !date || !time) {
+  if (!customerName || !email || !serviceType || !date || !time || !address) {
     return res.status(400).json({
       success: false,
       message: "Please provide all required fields",
@@ -12,7 +12,8 @@ export const createBooking = async (req, res) => {
   }
 
   try {
-    let bookingExists = await BookingModel.findOne({ email, serviceType, date, time });
+    // Check for existing booking with same email, service, date & time
+    const bookingExists = await BookingModel.findOne({ email, serviceType, date, time });
     if (bookingExists) {
       return res.status(409).json({
         success: false,
@@ -21,7 +22,7 @@ export const createBooking = async (req, res) => {
     }
 
     const newBooking = new BookingModel({
-      fullName,
+      customerName,
       address,
       email,
       phone,
@@ -35,9 +36,17 @@ export const createBooking = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Booking created successfully",
+      booking: newBooking,
     });
   } catch (err) {
     console.error("Error:", err.message);
+    // Handle duplicate email error (MongoDB error code 11000)
+    if (err.code === 11000 && err.keyPattern?.email) {
+      return res.status(409).json({
+        success: false,
+        message: "A booking with this email already exists.",
+      });
+    }
     res.status(500).json({
       success: false,
       message: "Server Error",
@@ -93,7 +102,6 @@ export const getBookingById = async (req, res) => {
 export const deleteAllBookings = async (req, res) => {
   try {
     await BookingModel.deleteMany();
-
     res.status(200).json({
       success: true,
       message: "All bookings deleted successfully!",

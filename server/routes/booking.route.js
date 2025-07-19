@@ -3,7 +3,6 @@ import {
   createBooking,
   getAllBookings,
   getBookingById,
-  deleteBooking,
   deleteAllBookings,
   deleteBookingById,
   updateBookingStatusById,

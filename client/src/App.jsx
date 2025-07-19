@@ -13,6 +13,7 @@ import ServiceManagementPage from "./pages/admin/ServiceManagePage";
 import BookingManagementPage from "./pages/admin/BookingManage";
 import LoadingSpinner from "./loader";
 import { useState, useEffect } from "react";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -20,16 +21,29 @@ function App() {
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       setLoading(false);
-    }, 3000); // Timeout for 5 seconds
+    }, 1000); // Spinner shows for 3 seconds
 
-    return () => clearTimeout(timeoutId); // Clean up the timeout when component unmounts
+    return () => clearTimeout(timeoutId);
   }, []);
 
   if (loading) {
-    return <LoadingSpinner />; // Show spinner until timeout reaches
+    return <LoadingSpinner />;
   }
+
   return (
     <Router>
+      {/* ✅ Toast notifications are placed outside Routes */}
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: {
+            border: '1px solid #61d345',
+            padding: "20px",
+          },
+        }}
+        reverseOrder={false}
+      />
+
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/services" element={<ServicesPage />} />
@@ -39,6 +53,7 @@ function App() {
         <Route path="/register" element={<RegistrationPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
 
+        {/* Admin Routes */}
         <Route path="/admin/dashboard" element={<DashboardPage />} />
         <Route path="/admin/users" element={<UserManagementPage />} />
         <Route path="/admin/services" element={<ServiceManagementPage />} />
