@@ -53,3 +53,38 @@ router.get("/logout", (req, res) => {
 });
 
 export default router;
+
+
+
+// import express from "express";
+// import {
+//   registerUser,
+//   loginUser,
+//   getAllUsers,
+//   getUserById,
+//   deleteUser,
+//   updateUser,
+// } from "../../controllers/auth/user.controller.js";
+// import { verifyToken } from "../../middleware/auth/verifyToken.js";
+
+// const router = express.Router();
+
+// // User Registration Route (No token needed for registration)
+// router.post("/register", registerUser);
+
+// // User Login Route (No token needed for login)
+// router.post("/login", loginUser);
+
+// // Get All Users (Protected route, requires token)
+// router.get("/get-all-users", verifyToken, getAllUsers);
+
+// // Get User by ID (Protected route, requires token)
+// router.get("/get-user/:id", verifyToken, getUserById);
+
+// // Delete User by ID (Protected route, requires token)
+// router.delete("/delete-user/:id", verifyToken, deleteUser);
+
+// // Update User (Protected route, requires token)
+// router.put("/update-user/:id", verifyToken, updateUser);
+
+// export default router;
