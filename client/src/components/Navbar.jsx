@@ -3,66 +3,94 @@ import { Link } from "react-router-dom";
 import { FiMenu, FiX } from "react-icons/fi";
 import ProfileAvatar from "../components/auth/ProfileAvatar";
 import ProfileModal from "../components/auth/ProfileModel";
-import { getCurrentUser, logoutUser } from "../middlewares/api"; // ✅ make sure this path is correct
+import { getCurrentUser, logoutUser } from "../middlewares/api";
 import { toast } from "react-hot-toast";
 
 export default function Navbar() {
+  // Initialize user from localStorage if available
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+  const [loggedIn, setLoggedIn] = useState(!!user);
+
   const [menuOpen, setMenuOpen] = useState(false);
-  const [loggedIn, setLoggedIn] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    getCurrentUser()
-      .then((res) => {
-        const userData = res.data;
-        setUser(userData);
-        setLoggedIn(true);
+    // Only fetch user if not already set from localStorage
+    if (!user) {
+      getCurrentUser()
+        .then((res) => {
+          const userData = res.data;
+          setUser(userData);
+          setLoggedIn(true);
 
-        const isIncomplete =
-          !userData.fullName || !userData.phone || !userData.address;
-        const warned = sessionStorage.getItem("profileWarned");
+          const isIncomplete =
+            !userData.fullName || !userData.phone || !userData.address;
+          const warned = sessionStorage.getItem("profileWarned");
 
-       if (isIncomplete && !warned && (!userData.phone || !userData.address || !userData.gender)) {
-          toast.custom(
-            (t) => (
-              <div
-                className={`${
-                  t.visible ? "animate-enter" : "animate-leave"
-                } max-w-md w-full bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded shadow-md flex flex-col`}
-              >
-                <strong className="font-bold">⚠️ Incomplete Profile</strong>
-                <p className="mt-1 text-sm">
-                  Please{" "}
-                  <Link
-                    to={`/profile/edit/${userData._id}`} // replace _id if your user id field is different
-                    className="underline font-semibold text-yellow-700 hover:text-yellow-900"
-                    onClick={() => toast.dismiss(t.id)} // optional: dismiss toast on click
-                  >
-                    complete your profile
-                  </Link>{" "}
-                  to unlock full features.
-                </p>
-                <button
-                  onClick={() => toast.dismiss(t.id)}
-                  className="mt-2 self-end text-yellow-700 hover:underline font-semibold"
+          if (
+            isIncomplete &&
+            !warned &&
+            (!userData.phone || !userData.address || !userData.gender)
+          ) {
+            toast.custom(
+              (t) => (
+                <div
+                  className={`${
+                    t.visible ? "animate-enter" : "animate-leave"
+                  } max-w-md w-full bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded shadow-md flex flex-col`}
                 >
-                  Dismiss
-                </button>
-              </div>
-            ),
-            {
-              duration: 10000,
-            }
-          );
-          sessionStorage.setItem("profileWarned", "true");
-        }
-      })
-      .catch(() => {
+                  <strong className="font-bold">⚠️ Incomplete Profile</strong>
+                  <p className="mt-1 text-sm">
+                    Please{" "}
+                    <Link
+                      to={`/profile/edit/${userData._id}`}
+                      className="underline font-semibold text-yellow-700 hover:text-yellow-900"
+                      onClick={() => toast.dismiss(t.id)}
+                    >
+                      complete your profile
+                    </Link>{" "}
+                    to unlock full features.
+                  </p>
+                  <button
+                    onClick={() => toast.dismiss(t.id)}
+                    className="mt-2 self-end text-yellow-700 hover:underline font-semibold"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              ),
+              {
+                duration: 10000,
+              }
+            );
+            sessionStorage.setItem("profileWarned", "true");
+          }
+        })
+        .catch(() => {
+          setUser(null);
+          setLoggedIn(false);
+        });
+    }
+  }, [user]);
+
+  // Sync localStorage changes (if login/logout in other tabs)
+  useEffect(() => {
+    const syncUser = () => {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+        setLoggedIn(true);
+      } else {
         setUser(null);
         setLoggedIn(false);
-      });
+      }
+    };
+    window.addEventListener("storage", syncUser);
+    return () => window.removeEventListener("storage", syncUser);
   }, []);
 
   const handleLogout = () => {
@@ -172,19 +200,13 @@ export default function Navbar() {
             <Link to="/" className="block hover:text-teal-600 transition">
               Home
             </Link>
-            <Link
-              to="/services"
-              className="block hover:text-teal-600 transition"
-            >
+            <Link to="/services" className="block hover:text-teal-600 transition">
               Services
             </Link>
             <Link to="/about" className="block hover:text-teal-600 transition">
               About
             </Link>
-            <Link
-              to="/contact"
-              className="block hover:text-teal-600 transition"
-            >
+            <Link to="/contact" className="block hover:text-teal-600 transition">
               Contact
             </Link>
             {!loggedIn ? (

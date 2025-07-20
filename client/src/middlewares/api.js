@@ -24,11 +24,14 @@ import axios from 'axios';
 const BASE_URL = 'http://localhost:5000/';
 
 const request = (method, endpoint, data = {}) => {
+  const token = localStorage.getItem('token'); // get token from storage
+
   return axios({
     method,
     url: `${BASE_URL}${endpoint}`,
     data,
-    withCredentials: true, // ✅ needed for Google OAuth & session login
+    withCredentials: true,
+    headers: token ? { Authorization: `Bearer ${token}` } : {}, // attach token if exists
   });
 };
 
