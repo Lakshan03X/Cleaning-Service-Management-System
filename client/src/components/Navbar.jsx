@@ -98,6 +98,7 @@ export default function Navbar() {
       .then(() => {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
+        localStorage.removeItem("email");
         sessionStorage.removeItem("profileWarned"); // clear toast warning flag
         setLoggedIn(false);
         setUser(null);

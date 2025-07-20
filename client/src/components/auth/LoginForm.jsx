@@ -34,7 +34,9 @@ function LoginForm() {
         toast.success("Login successful!");
         localStorage.setItem("token", res.data.token);
         localStorage.setItem("user", JSON.stringify(res.data.user));
+        localStorage.setItem("email", form.email);
         navigate("/"); // Redirect as needed
+        console.log("email from localStorage:", form.email);
       } else {
         toast.error(res.data.message || "Login failed");
       }

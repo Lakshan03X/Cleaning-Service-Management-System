@@ -7,7 +7,7 @@ import {
   FiLayers,
   FiEdit,
 } from "react-icons/fi";
-import { createBooking } from "../middlewares/api";
+import { createBooking, getServices } from "../middlewares/api";
 import { toast } from "react-hot-toast";
 
 const SERVICE_TYPES = [
@@ -23,9 +23,10 @@ export default function AddBooking({
   setBookings,
   editingIndex,
   setEditingIndex,
+  userEmail, // new prop for logged-in user email
 }) {
   const initialForm = {
-    customerName: "",
+    customerName: userEmail,
     address: "",
     date: "",
     time: "",
@@ -35,14 +36,34 @@ export default function AddBooking({
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [services, setServices] = useState([]);
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await getServices(); // assuming this returns { data: { services: [...] } }
+        setServices(response.data.services); // update state with service list
+      } catch (error) {
+        console.error("Failed to fetch services:", error);
+      }
+    };
+
+    fetchServices();
+  }, []);
 
   useEffect(() => {
     if (editingIndex !== null) {
       setForm(bookings[editingIndex]);
     } else {
-      setForm(initialForm);
+      setForm({
+        customerName: userEmail,
+        address: "",
+        date: "",
+        time: "",
+        serviceType: SERVICE_TYPES[0].name,
+      });
     }
-  }, [editingIndex, bookings]);
+  }, [editingIndex, bookings, userEmail]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -74,9 +95,7 @@ export default function AddBooking({
         setEditingIndex(null);
         toast.success("Booking updated successfully!");
       } else {
-        const dummyEmail = `${form.customerName
-          .replace(/\s+/g, "_")
-          .toLowerCase()}@noemail.com`;
+        const dummyEmail = form.customerName;
 
         const bookingPromise = createBooking({
           ...form,
@@ -96,7 +115,13 @@ export default function AddBooking({
         await bookingPromise;
       }
 
-      setForm(initialForm);
+      setForm({
+        customerName: userEmail ? userEmail.split("@")[0] : "",
+        address: "",
+        date: "",
+        time: "",
+        serviceType: SERVICE_TYPES[0].name,
+      });
     } catch (err) {
       const message =
         err?.response?.data?.message ||
@@ -121,14 +146,15 @@ export default function AddBooking({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <label className="flex flex-col">
           <div className="flex items-center gap-2 mb-2 text-gray-700 font-semibold">
-            <FiUser className="text-teal-600" /> Customer Name
+            <FiUser className="text-teal-600" /> Customer Email
           </div>
           <input
             type="text"
             name="customerName"
             value={form.customerName}
             onChange={handleChange}
-            placeholder="Your full name"
+            placeholder="Your email"
+            readOnly
             className="mt-1 p-3 border rounded-md border-gray-300 focus:ring-2 focus:ring-teal-500 outline-none transition"
           />
         </label>
@@ -183,16 +209,19 @@ export default function AddBooking({
             onChange={handleChange}
             className="mt-1 p-3 border rounded-md border-gray-300 focus:ring-2 focus:ring-teal-500 outline-none transition"
           >
-            {SERVICE_TYPES.map(({ name }) => (
-              <option key={name} value={name}>
-                {name}
+            <option value="">Select a service</option>
+            {services.map((service, index) => (
+              <option key={index} value={service.serviceName}>
+                {service.serviceName}
               </option>
             ))}
           </select>
         </label>
       </div>
 
-      {error && <p className="text-red-500 text-sm mt-4 text-center">{error}</p>}
+      {error && (
+        <p className="text-red-500 text-sm mt-4 text-center">{error}</p>
+      )}
 
       <button
         type="submit"

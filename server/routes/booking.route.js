@@ -6,6 +6,7 @@ import {
   deleteAllBookings,
   deleteBookingById,
   updateBookingStatusById,
+  updateBooking,
 } from "../controllers/bookng.controller.js";
 // import { verifyToken } from "../../middleware/auth/verifyToken.js";
 
@@ -27,5 +28,6 @@ router.delete("/delete-bookings/:id", deleteBookingById);
 
 // Update Booking Status (Protected route)
 router.put("/update-booking-status/:id", updateBookingStatusById);
+router.put("/update-booking/:id", updateBooking);
 
 export default router;

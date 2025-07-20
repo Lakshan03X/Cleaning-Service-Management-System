@@ -40,6 +40,8 @@ export const createBooking = (data) => request('post', 'booking/create-booking',
 export const getBookings = () => request('get', 'booking/get-all-bookings');
 export const getBookingById = (id) => request('get', `booking/get-booking/${id}`);
 export const updateBookingStatus = (id, status) => request('put', `booking/update-booking-status/${id}`, { status });
+export const updateBookingById = (id, updatedData) =>
+  request('put', `booking/update-booking/${id}`, updatedData);
 export const deleteBookingById = (id) => request('delete', `booking/delete-bookings/${id}`);
 export const deleteAllBookings = () => request('delete', 'booking/delete-all-bookings');
 

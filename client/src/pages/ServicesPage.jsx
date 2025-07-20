@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AddBooking from "../components/AddBooking";
 import MyBookings from "../components/MyBooking";
 import ServiceList from "../components/ServiceList";
@@ -8,6 +8,15 @@ export default function ServicesPage() {
   const [tab, setTab] = useState("add");
   const [bookings, setBookings] = useState([1]);
   const [editingIndex, setEditingIndex] = useState(null);
+  const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("email");
+    if (savedEmail) {
+      setEmail(savedEmail);
+    }
+    console.log("Email from localStorage:", savedEmail);
+  }, []);
 
   return (
     <>
@@ -44,6 +53,7 @@ export default function ServicesPage() {
                 setBookings={setBookings}
                 editingIndex={editingIndex}
                 setEditingIndex={setEditingIndex}
+                userEmail={email}
               />
             )}
             {tab === "my" && (
@@ -51,6 +61,7 @@ export default function ServicesPage() {
                 bookings={bookings}
                 setBookings={setBookings}
                 setEditingIndex={setEditingIndex}
+                userEmail={email} 
               />
             )}
             {tab === "services" && <ServiceList />}

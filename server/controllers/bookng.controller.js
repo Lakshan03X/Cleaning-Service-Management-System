@@ -12,8 +12,7 @@ export const createBooking = async (req, res) => {
   }
 
   try {
-    // Check for existing booking with same email, service, date & time
-    const bookingExists = await BookingModel.findOne({ email, serviceType, date, time });
+    const bookingExists = await BookingModel.findOne({ serviceType, date, time });
     if (bookingExists) {
       return res.status(409).json({
         success: false,
@@ -40,13 +39,7 @@ export const createBooking = async (req, res) => {
     });
   } catch (err) {
     console.error("Error:", err.message);
-    // Handle duplicate email error (MongoDB error code 11000)
-    if (err.code === 11000 && err.keyPattern?.email) {
-      return res.status(409).json({
-        success: false,
-        message: "A booking with this email already exists.",
-      });
-    }
+    
     res.status(500).json({
       success: false,
       message: "Server Error",
@@ -175,6 +168,68 @@ export const updateBookingStatusById = async (req, res) => {
     });
   } catch (err) {
     console.error("Error:", err.message);
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
+
+
+export const updateBooking = async (req, res) => {
+  const { id } = req.params;  // assuming booking id comes from the URL params
+  const { customerName, email, serviceType, date, time, address, phone } = req.body;
+
+  if (!customerName || !email || !serviceType || !date || !time || !address) {
+    return res.status(400).json({
+      success: false,
+      message: "Please provide all required fields",
+    });
+  }
+
+  try {
+    // Check if booking exists by ID
+    const booking = await BookingModel.findById(id);
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    // Check if another booking with same serviceType, date, time exists (excluding current booking)
+    const bookingConflict = await BookingModel.findOne({ 
+      serviceType, 
+      date, 
+      time, 
+      _id: { $ne: id } // exclude current booking ID
+    });
+    if (bookingConflict) {
+      return res.status(409).json({
+        success: false,
+        message: "Another booking exists for the given date and time!",
+      });
+    }
+
+    // Update fields
+    booking.customerName = customerName;
+    booking.email = email;
+    booking.serviceType = serviceType;
+    booking.date = date;
+    booking.time = time;
+    booking.address = address;
+    booking.phone = phone;
+
+    await booking.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Booking updated successfully",
+      booking,
+    });
+  } catch (err) {
+    console.error("Error:", err.message);
+
     res.status(500).json({
       success: false,
       message: "Server Error",
