@@ -62,7 +62,7 @@ function UserManagePage() {
         toast.success("User updated.");
       } else {
         await registerUser(formData);
-        fetchUsers(); // reload to get new user with ID
+        fetchUsers();
         toast.success("User added.");
       }
       handleClose();
@@ -72,67 +72,73 @@ function UserManagePage() {
   };
 
   return (
-    <>
-      <div className="flex">
-        <div>
-          <Sidebar />
+    <div className="flex min-h-screen bg-gray-50">
+      <aside className="w-[20%] bg-gray-100 border-r border-gray-200 sticky top-0 h-screen">
+        <Sidebar />
+      </aside>
+      <main className="flex-1 p-8 max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-teal-600">User Management</h2>
+          <button
+            onClick={handleAdd}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md shadow-md transition"
+          >
+            Add User
+          </button>
         </div>
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-bold">User Management</h2>
-            <button
-              onClick={handleAdd}
-              className="bg-green-600 text-white px-4 py-2 rounded"
-            >
-              Add User
-            </button>
-          </div>
-          <table className="min-w-full table-auto border">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="p-2 border">Name</th>
-                <th className="p-2 border">Email</th>
-                <th className="p-2 border">Phone</th>
-                <th className="p-2 border">Address</th>
-                <th className="p-2 border">Actions</th>
+        <div className="overflow-x-auto rounded-md shadow-md bg-white">
+          <table className="min-w-full table-auto border-collapse">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="p-3 border-b border-gray-300 text-left">Name</th>
+                <th className="p-3 border-b border-gray-300 text-left">Email</th>
+                <th className="p-3 border-b border-gray-300 text-left">Phone</th>
+                <th className="p-3 border-b border-gray-300 text-left">Address</th>
+                <th className="p-3 border-b border-gray-300 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
               {users.map((user) => (
-                <tr key={user._id}>
-                  <td className="p-2 border">{user.fullName}</td>
-                  <td className="p-2 border">{user.email}</td>
-                  <td className="p-2 border">{user.phone}</td>
-                  <td className="p-2 border">{user.address}</td>
-                  <td className="p-2 border flex gap-2">
+                <tr
+                  key={user._id}
+                  className="border-b hover:bg-teal-50 transition-colors"
+                >
+                  <td className="p-3">{user.fullName}</td>
+                  <td className="p-3">{user.email}</td>
+                  <td className="p-3">{user.phone}</td>
+                  <td className="p-3">{user.address}</td>
+                  <td className="p-3 flex gap-3">
                     <button
                       onClick={() => handleEdit(user)}
-                      className="bg-yellow-500 text-white px-2 py-1 rounded"
+                      className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md shadow-sm transition"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => handleDelete(user._id)}
-                      className="bg-red-500 text-white px-2 py-1 rounded"
+                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md shadow-sm transition"
                     >
                       Delete
                     </button>
                   </td>
                 </tr>
               ))}
+              {users.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="text-center p-6 text-gray-500">
+                    No users found
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
-
-          {formOpen && (
-            <UserForm
-              user={selectedUser}
-              onClose={handleClose}
-              onSubmit={handleSubmit}
-            />
-          )}
         </div>
-      </div>
-    </>
+
+        {formOpen && (
+          <UserForm user={selectedUser} onClose={handleClose} onSubmit={handleSubmit} />
+        )}
+      </main>
+    </div>
   );
 }
 

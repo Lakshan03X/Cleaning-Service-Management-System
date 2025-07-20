@@ -7,18 +7,53 @@ import {
   HiOutlineLocationMarker,
 } from "react-icons/hi";
 import { MdWc } from "react-icons/md";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import toast from 'react-hot-toast';
+import { registerUser } from '../../middlewares/api';
 
 function RegistrationForm() {
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate(); 
+
+  const [formData, setFormData] = useState({
+    fullname: "",
+    email: "",
+    password: "",
+    phone: "",
+    gender: "",
+    address: ""
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await registerUser(formData);
+      if (response.status === 200) {
+        toast.success("Registration successful!");
+        navigate("/login");
+        navi
+      } else {
+        toast.error("Registration failed! Please try again.");
+      }
+    } catch (error) {
+      toast.error("An error occurred. Please try again later.");
+    }
+  };
 
   return (
     <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-6 space-y-6">
       <h2 className="text-3xl font-extrabold text-indigo-600 text-center">
         Create Account
       </h2>
-      <form className="space-y-5" action="">
-        {/* Full Name */}
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div className="relative">
           <label htmlFor="fullname" className="sr-only">
             Full Name
@@ -28,14 +63,16 @@ function RegistrationForm() {
           </div>
           <input
             id="fullname"
+            name="fullname"
             type="text"
+            value={formData.fullname}
+            onChange={handleInputChange}
             placeholder="Your full name"
             required
             className="w-full pl-10 px-4 py-2.5 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition"
           />
         </div>
 
-        {/* Email */}
         <div className="relative">
           <label htmlFor="email" className="sr-only">
             Email
@@ -45,21 +82,26 @@ function RegistrationForm() {
           </div>
           <input
             id="email"
+            name="email"
             type="email"
+            value={formData.email}
+            onChange={handleInputChange}
             placeholder="you@example.com"
             required
             className="w-full pl-10 px-4 py-2.5 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition"
           />
         </div>
 
-        {/* Password with toggle */}
         <div className="relative">
           <label htmlFor="password" className="sr-only">
             Password
           </label>
           <input
             id="password"
+            name="password"
             type={showPassword ? "text" : "password"}
+            value={formData.password}
+            onChange={handleInputChange}
             placeholder="Enter your password"
             required
             className="w-full pr-12 pl-4 py-2.5 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition"
@@ -78,9 +120,7 @@ function RegistrationForm() {
           </button>
         </div>
 
-        {/* Phone and Gender side-by-side */}
         <div className="grid grid-cols-2 gap-4">
-          {/* Phone */}
           <div className="relative">
             <label htmlFor="phone" className="sr-only">
               Phone
@@ -90,14 +130,16 @@ function RegistrationForm() {
             </div>
             <input
               id="phone"
+              name="phone"
               type="tel"
+              value={formData.phone}
+              onChange={handleInputChange}
               placeholder="+123 456 7890"
               required
               className="w-full pl-10 px-4 py-2.5 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition"
             />
           </div>
 
-          {/* Gender */}
           <div className="relative">
             <label htmlFor="gender" className="sr-only">
               Gender
@@ -107,9 +149,11 @@ function RegistrationForm() {
             </div>
             <select
               id="gender"
+              name="gender"
+              value={formData.gender}
+              onChange={handleInputChange}
               required
               className="w-full pl-10 px-4 py-2.5 rounded-lg border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition bg-white"
-              defaultValue=""
             >
               <option value="" disabled>
                 Select gender
@@ -122,7 +166,6 @@ function RegistrationForm() {
           </div>
         </div>
 
-        {/* Address */}
         <div className="relative">
           <label htmlFor="address" className="sr-only">
             Address
@@ -132,6 +175,9 @@ function RegistrationForm() {
           </div>
           <textarea
             id="address"
+            name="address"
+            value={formData.address}
+            onChange={handleInputChange}
             placeholder="Your address"
             rows={2}
             required
@@ -147,7 +193,6 @@ function RegistrationForm() {
         </button>
       </form>
 
-      {/* Have account option */}
       <p className="text-center text-sm text-gray-600">
         Do you have an account?{" "}
         <Link
