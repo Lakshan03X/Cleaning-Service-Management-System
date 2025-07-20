@@ -16,6 +16,9 @@ const UserForm = ({ user, onClose, onSubmit }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [changePassword, setChangePassword] = useState(false);
 
+  // Detect if user logged in with Google (you must pass this prop or add this flag to user object)
+  const isGoogleUser = user && user.googleId ? true : false;
+
   useEffect(() => {
     if (user) {
       setFormData({
@@ -27,6 +30,8 @@ const UserForm = ({ user, onClose, onSubmit }) => {
         gender: user.gender || "Male",
         role: user.role || "User",
       });
+      setChangePassword(false); // Reset changePassword on user change
+      setShowPassword(false); // Reset password visibility
     } else {
       setFormData({
         fullName: "",
@@ -37,6 +42,8 @@ const UserForm = ({ user, onClose, onSubmit }) => {
         gender: "Male",
         role: "User",
       });
+      setChangePassword(false);
+      setShowPassword(false);
     }
   }, [user]);
 
@@ -54,6 +61,10 @@ const UserForm = ({ user, onClose, onSubmit }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    // Prevent email editing if Google user
+    if (isGoogleUser && name === "email") return;
+
     setFormData((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
@@ -62,21 +73,20 @@ const UserForm = ({ user, onClose, onSubmit }) => {
     e.preventDefault();
     if (validate()) {
       const dataToSubmit = { ...formData };
-      if (!user || changePassword) {
-        onSubmit(dataToSubmit);
-      } else {
-        delete dataToSubmit.password; // Don't submit empty password
-        onSubmit(dataToSubmit);
+
+      // If user exists but password is not being changed, don't send password field
+      if (user && !changePassword) {
+        delete dataToSubmit.password;
       }
+
+      onSubmit(dataToSubmit);
     }
   };
 
   return (
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-start z-50">
       <div className="bg-white w-full max-w-md h-screen overflow-y-auto p-6 rounded-lg shadow-lg mt-6">
-        <h2 className="text-xl font-bold mb-4">
-          {user ? "Edit" : "Add"} User
-        </h2>
+        <h2 className="text-xl font-bold mb-4">{user ? "Edit" : "Add"} User</h2>
 
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
@@ -96,7 +106,10 @@ const UserForm = ({ user, onClose, onSubmit }) => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="w-full p-2 border rounded"
+              className={`w-full p-2 border rounded ${
+                isGoogleUser ? "bg-gray-100 cursor-not-allowed" : ""
+              }`}
+              readOnly={isGoogleUser} // make readonly if Google user
             />
             {errors.email && <p className="text-red-500">{errors.email}</p>}
           </div>
@@ -123,6 +136,11 @@ const UserForm = ({ user, onClose, onSubmit }) => {
           </div>
 
           {/* Password section */}
+
+          {/* Show password input only if:
+              - new user (no user prop)
+              - OR existing user who is NOT Google user and wants to change password */}
+
           {!user && (
             <div className="mb-4 relative">
               <label className="block mb-1">Password</label>
@@ -143,7 +161,7 @@ const UserForm = ({ user, onClose, onSubmit }) => {
             </div>
           )}
 
-          {user && !changePassword && (
+          {user && !isGoogleUser && !changePassword && (
             <div className="mb-4">
               <button
                 type="button"
@@ -155,7 +173,7 @@ const UserForm = ({ user, onClose, onSubmit }) => {
             </div>
           )}
 
-          {user && changePassword && (
+          {user && !isGoogleUser && changePassword && (
             <div className="mb-4 relative">
               <label className="block mb-1">New Password</label>
               <input
@@ -203,7 +221,11 @@ const UserForm = ({ user, onClose, onSubmit }) => {
           </div>
 
           <div className="flex justify-end gap-4">
-            <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-500 text-white rounded">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 bg-gray-500 text-white rounded"
+            >
               Cancel
             </button>
             <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">

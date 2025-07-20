@@ -21,13 +21,14 @@
 // api.js or endpoints.js
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:5000/'; // Replace with your actual base URL
+const BASE_URL = 'http://localhost:5000/';
 
 const request = (method, endpoint, data = {}) => {
   return axios({
     method,
     url: `${BASE_URL}${endpoint}`,
     data,
+    withCredentials: true, // ✅ needed for Google OAuth & session login
   });
 };
 
@@ -47,25 +48,18 @@ export const updateService = (id, data) => request('put', `service/update-servic
 export const deleteServiceById = (id) => request('delete', `service/delete-service/${id}`);
 export const deleteAllServices = () => request('delete', 'service/delete-all-service');
 
-// Auth API (Google Auth)
-export const loginWithGoogle = () => {
-  window.location.href = `${BASE_URL}auth/google`;
-};
-
-export const logout = async () => {
-  try {
-    const response = await request('get', 'auth/logout');
-    return response.data;
-  } catch (error) {
-    console.error('Logout error', error);
-    throw error;
-  }
-};
-
-// User API (if needed, based on your commented-out routes)
+// Auth API
 export const registerUser = (data) => request('post', 'auth/register', data);
 export const loginUser = (data) => request('post', 'auth/login', data);
 export const getAllUsers = () => request('get', 'auth/get-all-users');
 export const getUserById = (id) => request('get', `auth/get-user/${id}`);
 export const updateUser = (id, data) => request('put', `auth/update-user/${id}`, data);
 export const deleteUser = (id) => request('delete', `auth/delete-user/${id}`);
+
+// Google OAuth
+export const googleLogin = () => {
+  window.location.href = `${BASE_URL}auth/google`;
+};
+
+export const logoutUser = () => request('get', 'auth/logout');
+export const getCurrentUser = () => request('get', 'auth/user');

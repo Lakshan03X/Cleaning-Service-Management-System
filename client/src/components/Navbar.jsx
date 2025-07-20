@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiMenu, FiX } from "react-icons/fi";
-import ProfileAvatar from "../components/auth/ProfileAvatar"; // Make sure this path is correct
+import ProfileAvatar from "../components/auth/ProfileAvatar";
 import ProfileModal from "../components/auth/ProfileModel";
+import { getCurrentUser, logoutUser } from "../middlewares/api"; // ✅ make sure this path is correct
+import { toast } from "react-hot-toast";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -12,32 +14,71 @@ export default function Navbar() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const userData = localStorage.getItem("user");
-
-    if (token && userData) {
-      try {
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
+    getCurrentUser()
+      .then((res) => {
+        const userData = res.data;
+        setUser(userData);
         setLoggedIn(true);
-      } catch (error) {
-        console.error("Invalid user data in localStorage:", error);
-        localStorage.removeItem("user"); // Clean up corrupted data
+
+        const isIncomplete =
+          !userData.fullName || !userData.phone || !userData.address;
+        const warned = sessionStorage.getItem("profileWarned");
+
+       if (isIncomplete && !warned && (!userData.phone || !userData.address || !userData.gender)) {
+          toast.custom(
+            (t) => (
+              <div
+                className={`${
+                  t.visible ? "animate-enter" : "animate-leave"
+                } max-w-md w-full bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded shadow-md flex flex-col`}
+              >
+                <strong className="font-bold">⚠️ Incomplete Profile</strong>
+                <p className="mt-1 text-sm">
+                  Please{" "}
+                  <Link
+                    to={`/profile/edit/${userData._id}`} // replace _id if your user id field is different
+                    className="underline font-semibold text-yellow-700 hover:text-yellow-900"
+                    onClick={() => toast.dismiss(t.id)} // optional: dismiss toast on click
+                  >
+                    complete your profile
+                  </Link>{" "}
+                  to unlock full features.
+                </p>
+                <button
+                  onClick={() => toast.dismiss(t.id)}
+                  className="mt-2 self-end text-yellow-700 hover:underline font-semibold"
+                >
+                  Dismiss
+                </button>
+              </div>
+            ),
+            {
+              duration: 10000,
+            }
+          );
+          sessionStorage.setItem("profileWarned", "true");
+        }
+      })
+      .catch(() => {
         setUser(null);
         setLoggedIn(false);
-      }
-    } else {
-      setUser(null);
-      setLoggedIn(false);
-    }
+      });
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setLoggedIn(false);
-    setDropdownOpen(false);
-    setMenuOpen(false);
+    logoutUser()
+      .then(() => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        sessionStorage.removeItem("profileWarned"); // clear toast warning flag
+        setLoggedIn(false);
+        setUser(null);
+        setDropdownOpen(false);
+        setMenuOpen(false);
+      })
+      .catch((err) => {
+        console.error("Logout failed:", err);
+      });
   };
 
   return (
@@ -88,16 +129,16 @@ export default function Navbar() {
                   <ProfileAvatar user={user} />
                 </button>
                 {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-lg py-2">
-                    <Link
+                  <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-md shadow-lg py-2 z-50">
+                    <button
                       onClick={() => {
                         setShowProfileModal(true);
                         setDropdownOpen(false);
                       }}
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
                       Profile
-                    </Link>
+                    </button>
                     <button
                       onClick={handleLogout}
                       className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -178,6 +219,7 @@ export default function Navbar() {
           </div>
         )}
       </header>
+
       {showProfileModal && (
         <ProfileModal user={user} onClose={() => setShowProfileModal(false)} />
       )}

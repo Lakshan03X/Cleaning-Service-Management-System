@@ -43,6 +43,12 @@ app.use(passport.session());
 app.use("/auth", authRoutes);
 app.use("/service", serviceRoute);
 app.use("/booking", bookingRoute);
+app.use(
+  cors({
+    origin: "http://localhost:5173", // frontend port
+    credentials: true, // ✅ must match axios
+  })
+);
 
 const PORT = process.env.PORT || 5001;
 connectDB().then(() => {

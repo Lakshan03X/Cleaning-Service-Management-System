@@ -3,7 +3,7 @@ import { HiOutlineMail } from "react-icons/hi";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { FcGoogle } from "react-icons/fc";
 import toast from "react-hot-toast";
-import { loginUser } from "../../middlewares/api"; // Adjust path as needed
+import { loginUser, googleLogin } from "../../middlewares/api"; // Adjust path as needed
 import { useNavigate } from "react-router-dom";
 
 function LoginForm() {
@@ -11,10 +11,6 @@ function LoginForm() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
-  const handleLogin = () => {
-    window.open("http://localhost:5000/auth/google", "_self");
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -137,7 +133,7 @@ function LoginForm() {
         <button
           type="button"
           className="w-full flex items-center justify-center gap-3 border border-gray-300 hover:border-gray-400 py-3 rounded-lg font-semibold transition shadow-sm"
-          onClick={handleLogin}
+          onClick={googleLogin}
         >
           <FcGoogle size={24} />
           Sign in with Google

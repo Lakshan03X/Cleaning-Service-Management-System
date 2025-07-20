@@ -14,6 +14,7 @@ import BookingManagementPage from "./pages/admin/BookingManage";
 import LoadingSpinner from "./loader";
 import { useState, useEffect } from "react";
 import { Toaster } from "react-hot-toast";
+import EditProfilePage from "./pages/EditProfilePage";
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -37,7 +38,7 @@ function App() {
         position="top-center"
         toastOptions={{
           style: {
-            border: '1px solid #61d345',
+            border: "1px solid #61d345",
             padding: "20px",
           },
         }}
@@ -46,6 +47,7 @@ function App() {
 
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/profile/edit/:id" element={<EditProfilePage />} />
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/about" element={<AboutPage />} />
