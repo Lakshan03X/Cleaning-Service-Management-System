@@ -12,11 +12,11 @@ import "./config/passport.js";
 dotenv.config();
 const app = express();
 
-app.set("trust proxy", 1); // required for some hosting platforms
+app.set("trust proxy", 1);
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL, // should be 'http://localhost:5173'
+    origin: process.env.CLIENT_URL,
     credentials: true,
   })
 );
@@ -45,8 +45,8 @@ app.use("/service", serviceRoute);
 app.use("/booking", bookingRoute);
 app.use(
   cors({
-    origin: "http://localhost:5173", // frontend port
-    credentials: true, // ✅ must match axios
+    origin: "http://localhost:5173", 
+    credentials: true, 
   })
 );
 
