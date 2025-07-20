@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Image from "../assets/background.jpeg"
 
 export default function LandingPage() {
+  
   return (
     <>
       <Navbar />

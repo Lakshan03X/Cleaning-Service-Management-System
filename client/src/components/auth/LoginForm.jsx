@@ -12,6 +12,10 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const handleLogin = () => {
+    window.open("http://localhost:5000/auth/google", "_self");
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -133,6 +137,7 @@ function LoginForm() {
         <button
           type="button"
           className="w-full flex items-center justify-center gap-3 border border-gray-300 hover:border-gray-400 py-3 rounded-lg font-semibold transition shadow-sm"
+          onClick={handleLogin}
         >
           <FcGoogle size={24} />
           Sign in with Google
