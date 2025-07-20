@@ -1,58 +1,141 @@
-import { FiEdit, FiTrash2, FiPlus } from "react-icons/fi";
-import AdminSidebar from "../../components/admin/Sidebar";
+import React, { useState, useEffect } from "react";
+import ServiceForm from "../../components/admin/ServiceForm";
+import { getServices, createService, updateService, deleteServiceById } from "../../middlewares/api";
+import { toast } from "react-hot-toast";
 
-const ServiceManagementPage = ({ services, setServices }) => {
-  const handleDelete = (id) => {
-    setServices((prevServices) =>
-      prevServices.filter((service) => service.id !== id)
-    );
+const ServiceTable = () => {
+  const [services, setServices] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedService, setSelectedService] = useState(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
+  // Fetch services on mount
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const { data } = await getServices();
+        setServices(data.services);
+      } catch (err) {
+        toast.error("Failed to fetch services.");
+        console.error(err);
+      }
+    };
+
+    fetchServices();
+  }, []);
+
+  const handleDelete = async (id) => {
+    try {
+      await deleteServiceById(id);
+      setServices((prev) => prev.filter((s) => s._id !== id));
+      toast.success("Service deleted");
+    } catch (err) {
+      toast.error("Failed to delete service");
+      console.error(err);
+    }
   };
 
+  const handleSearch = (e) => setSearchQuery(e.target.value);
+
+  const handleEdit = (service) => {
+    setSelectedService(service);
+    setIsFormOpen(true);
+  };
+
+  const handleCloseForm = () => {
+    setSelectedService(null);
+    setIsFormOpen(false);
+  };
+
+  const handleSubmit = async (formData) => {
+    try {
+      if (selectedService) {
+        const { data } = await updateService(selectedService._id, formData);
+        setServices((prev) =>
+          prev.map((s) => (s._id === selectedService._id ? data.updatedService : s))
+        );
+        toast.success("Service updated successfully");
+      } else {
+        const { data } = await createService(formData);
+        // fetch latest data from backend again
+        const refreshed = await getServices();
+        setServices(refreshed.data.services);
+        toast.success("Service created successfully");
+      }
+
+      handleCloseForm();
+    } catch (err) {
+      const message = err?.response?.data?.message || "Submission failed";
+      toast.error(message);
+      console.error(err);
+    }
+  };
+
+  const filteredServices = services.filter((s) =>
+    s.serviceName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <>
-      <div className="flex">
-        <AdminSidebar />
-        <div className="flex-1 p-8">
-          <h1 className="text-4xl font-semibold text-teal-600 mb-8">
-            Service Management
-          </h1>
-          <button className="bg-teal-600 text-white px-6 py-3 rounded-md flex items-center gap-2 mb-6">
-            <FiPlus /> Add New Service
-          </button>
-          <table className="min-w-full bg-white shadow-md rounded-md">
-            <thead className="bg-teal-600 text-white">
-              <tr>
-                <th className="py-3 px-6">Service Name</th>
-                <th className="py-3 px-6">Price</th>
-                <th className="py-3 px-6">Description</th>
-                <th className="py-3 px-6">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {/* {services.map((service) => (
-            <tr key={service.id} className="border-b">
-              <td className="py-3 px-6">{service.name}</td>
-              <td className="py-3 px-6">${service.price}</td>
-              <td className="py-3 px-6">{service.description}</td>
-              <td className="py-3 px-6 flex gap-3">
-                <button className="text-teal-600 hover:text-teal-700">
-                  <FiEdit />
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-4">
+        <input
+          type="text"
+          placeholder="Search by service name"
+          value={searchQuery}
+          onChange={handleSearch}
+          className="p-2 border border-gray-300 rounded"
+        />
+        <button
+          onClick={() => setIsFormOpen(true)}
+          className="bg-green-500 text-white p-2 rounded"
+        >
+          Add Service
+        </button>
+      </div>
+
+      <table className="min-w-full table-auto">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="p-2 border-b">Service Name</th>
+            <th className="p-2 border-b">Description</th>
+            <th className="p-2 border-b">Price</th>
+            <th className="p-2 border-b">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filteredServices.map((service) => (
+            <tr key={service._id}>
+              <td className="p-2 border-b">{service.serviceName}</td>
+              <td className="p-2 border-b">{service.description}</td>
+              <td className="p-2 border-b">${service.price}</td>
+              <td className="p-2 border-b">
+                <button
+                  onClick={() => handleEdit(service)}
+                  className="bg-yellow-500 text-white p-2 rounded mr-2"
+                >
+                  Edit
                 </button>
                 <button
-                  className="text-red-600 hover:text-red-700"
-                  onClick={() => handleDelete(service.id)}
+                  onClick={() => handleDelete(service._id)}
+                  className="bg-red-500 text-white p-2 rounded"
                 >
-                  <FiTrash2 />
+                  Delete
                 </button>
               </td>
             </tr>
-          ))} */}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </>
+          ))}
+        </tbody>
+      </table>
+
+      {isFormOpen && (
+        <ServiceForm
+          service={selectedService}
+          onClose={handleCloseForm}
+          onSubmit={handleSubmit}
+        />
+      )}
+    </div>
   );
 };
 
-export default ServiceManagementPage;
+export default ServiceTable;
