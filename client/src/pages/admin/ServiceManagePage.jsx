@@ -15,7 +15,6 @@ const ServiceTable = () => {
   const [selectedService, setSelectedService] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
-  // Fetch services on mount
   useEffect(() => {
     const fetchServices = async () => {
       try {
@@ -64,13 +63,11 @@ const ServiceTable = () => {
         );
         toast.success("Service updated successfully");
       } else {
-        const { data } = await createService(formData);
-        // fetch latest data from backend again
+        await createService(formData);
         const refreshed = await getServices();
         setServices(refreshed.data.services);
         toast.success("Service created successfully");
       }
-
       handleCloseForm();
     } catch (err) {
       const message = err?.response?.data?.message || "Submission failed";
@@ -84,72 +81,80 @@ const ServiceTable = () => {
   );
 
   return (
-    <>
-      <div className="flex">
-        <div>
-          <Sidebar />
+    <div className="flex min-h-screen bg-gray-50">
+      <aside className="w-[20%] bg-gray-100 border-r border-gray-200 sticky top-0 h-screen">
+        <Sidebar />
+      </aside>
+      <main className="flex-1 p-8 max-w-7xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <input
+            type="text"
+            placeholder="Search by service name"
+            value={searchQuery}
+            onChange={handleSearch}
+            className="p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-400 w-80"
+          />
+          <button
+            onClick={() => setIsFormOpen(true)}
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md shadow-md transition"
+          >
+            Add Service
+          </button>
         </div>
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-4">
-            <input
-              type="text"
-              placeholder="Search by service name"
-              value={searchQuery}
-              onChange={handleSearch}
-              className="p-2 border border-gray-300 rounded"
-            />
-            <button
-              onClick={() => setIsFormOpen(true)}
-              className="bg-green-500 text-white p-2 rounded"
-            >
-              Add Service
-            </button>
-          </div>
 
-          <table className="min-w-full table-auto">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="p-2 border-b">Service Name</th>
-                <th className="p-2 border-b">Description</th>
-                <th className="p-2 border-b">Price</th>
-                <th className="p-2 border-b">Actions</th>
+        <table className="min-w-full table-auto bg-white rounded-md shadow-md overflow-hidden">
+          <thead>
+            <tr className="bg-green-600 text-white">
+              <th className="p-3 border-b border-green-700 text-left">Service Name</th>
+              <th className="p-3 border-b border-green-700 text-left">Description</th>
+              <th className="p-3 border-b border-green-700 text-left">Price</th>
+              <th className="p-3 border-b border-green-700 text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredServices.map((service) => (
+              <tr
+                key={service._id}
+                className="border-b hover:bg-green-50 transition-colors"
+              >
+                <td className="p-3">{service.serviceName}</td>
+                <td className="p-3">{service.description}</td>
+                <td className="p-3">${service.price}</td>
+                <td className="p-3 flex gap-3">
+                  <button
+                    onClick={() => handleEdit(service)}
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded-md shadow-sm transition"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(service._id)}
+                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md shadow-sm transition"
+                  >
+                    Delete
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {filteredServices.map((service) => (
-                <tr key={service._id}>
-                  <td className="p-2 border-b">{service.serviceName}</td>
-                  <td className="p-2 border-b">{service.description}</td>
-                  <td className="p-2 border-b">${service.price}</td>
-                  <td className="p-2 border-b">
-                    <button
-                      onClick={() => handleEdit(service)}
-                      className="bg-yellow-500 text-white p-2 rounded mr-2"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(service._id)}
-                      className="bg-red-500 text-white p-2 rounded"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+            ))}
+            {filteredServices.length === 0 && (
+              <tr>
+                <td colSpan={4} className="text-center p-6 text-gray-500">
+                  No services found
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
 
-          {isFormOpen && (
-            <ServiceForm
-              service={selectedService}
-              onClose={handleCloseForm}
-              onSubmit={handleSubmit}
-            />
-          )}
-        </div>
-      </div>
-    </>
+        {isFormOpen && (
+          <ServiceForm
+            service={selectedService}
+            onClose={handleCloseForm}
+            onSubmit={handleSubmit}
+          />
+        )}
+      </main>
+    </div>
   );
 };
 

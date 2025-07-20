@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { motion } from "framer-motion";
-import Image from "../assets/background.jpeg"
+import Image from "../assets/background.jpg"
 
 export default function LandingPage() {
   
@@ -43,7 +43,7 @@ export default function LandingPage() {
             <motion.img
               src={Image}
               alt="Cleaning service"
-              className="rounded-lg shadow-lg mx-auto w-full max-w-md"
+              className="rounded-lg shadow-lg mx-auto w-full max-w-md scale-130"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 1 }}

@@ -31,17 +31,27 @@ function LoginForm() {
       const res = await loginUser(form); // Axios returns response object
 
       if (res.data.success) {
+        const { token, user } = res.data;
+
         toast.success("Login successful!");
-        localStorage.setItem("token", res.data.token);
-        localStorage.setItem("user", JSON.stringify(res.data.user));
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
         localStorage.setItem("email", form.email);
-        navigate("/"); // Redirect as needed
+
+        // Redirect based on user role
+        const userRole = user.role?.toLowerCase();
+        if (userRole === "admin") {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/");
+        }
+
         console.log("email from localStorage:", form.email);
       } else {
         toast.error(res.data.message || "Login failed");
       }
     } catch (err) {
-      if (err.response && err.response.data && err.response.data.message) {
+      if (err.response?.data?.message) {
         toast.error(err.response.data.message);
       } else {
         toast.error("Server error");

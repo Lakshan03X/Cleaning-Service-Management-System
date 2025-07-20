@@ -98,132 +98,142 @@ const BookingTable = () => {
   );
 
   return (
-    <>
-      <div className="flex w-full">
-        <div className="w-[20%] bg-gray-100 h-screen">
-          <AdminSidebar />
+    <div className="flex w-full min-h-screen bg-gray-50">
+      <aside className="w-[20%] bg-gray-100 border-r border-gray-200 h-screen sticky top-0">
+        <AdminSidebar />
+      </aside>
+      <main className="p-6 w-[80%] overflow-auto">
+        <div className="flex justify-between items-center mb-6">
+          <input
+            type="text"
+            placeholder="Search by customer name"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-400 w-80"
+          />
+          <button
+            onClick={() => setIsFormOpen(true)}
+            className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-md flex items-center gap-2 shadow-md transition"
+          >
+            <FiPlus size={18} /> Add Booking
+          </button>
         </div>
-        <div className="p-6 w-[80%]">
-          <div className="flex justify-between mb-4 w-full">
-            <input
-              type="text"
-              placeholder="Search by customer name"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="p-2 border border-gray-300 rounded"
-            />
-            <button
-              onClick={() => setIsFormOpen(true)}
-              className="bg-teal-500 text-white p-2 rounded flex items-center gap-2"
-            >
-              <FiPlus /> Add Booking
-            </button>
-          </div>
 
-          <table className="min-w-full table-auto bg-white shadow-md rounded-lg">
-            <thead className="bg-teal-600 text-white">
-              <tr>
-                <th className="py-3 px-6 text-left">Customer Name</th>
-                <th className="py-3 px-6 text-left">Email</th>
-                <th className="py-3 px-6 text-left">Address</th>
-                <th className="py-3 px-6 text-left">Service Type</th>
-                <th className="py-3 px-6 text-left">Phone</th>
-                <th className="py-3 px-6 text-left">Date</th>
-                <th className="py-3 px-6 text-left">Time</th>
-                <th className="py-3 px-6 text-left">Price</th>
-                <th className="py-3 px-6 text-left">Status</th>
-                <th className="py-3 px-6 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredBookings.map((booking) => (
-                <tr key={booking._id} className="border-b">
-                  <td className="py-3 px-6">{booking.customerName}</td>
-                  <td className="py-3 px-6">{booking.email}</td>
-                  <td className="py-3 px-6">{booking.address}</td>
-                  <td className="py-3 px-6">{booking.serviceType}</td>
-                  <td className="py-3 px-6">{booking.phone}</td>
-                  <td className="py-3 px-6">
-                    {moment(booking.date).format("MMMM D, YYYY")}
-                  </td>
-                  <td className="py-3 px-6">
-                    {moment(booking.time, "HH:mm", true).isValid()
-                      ? moment(booking.time, "HH:mm").format("hh:mm A")
-                      : "Invalid time"}
-                  </td>
-                  <td className="py-3 px-6">{booking.ptice}</td>
-                  <td className="py-3 px-6">
-                    {editingStatusId === booking._id ? (
-                      <select
-                        value={statusDraft}
-                        onChange={(e) => setStatusDraft(e.target.value)}
-                        className="p-1 border rounded"
-                      >
-                        {["Pending", "Confirmed", "Completed", "Cancelled"].map(
-                          (status) => (
-                            <option key={status} value={status}>
-                              {status}
-                            </option>
-                          )
-                        )}
-                      </select>
-                    ) : (
-                      booking.status
-                    )}
-                  </td>
-                  <td className="py-3 px-6 flex gap-3 items-center">
-                    {editingStatusId === booking._id ? (
+        <table className="min-w-full table-auto bg-white shadow-lg rounded-md overflow-hidden">
+          <thead className="bg-teal-600 text-white sticky top-0">
+            <tr>
+              <th className="py-3 px-6 text-left">Customer Name</th>
+              <th className="py-3 px-6 text-left">Email</th>
+              <th className="py-3 px-6 text-left">Address</th>
+              <th className="py-3 px-6 text-left">Service Type</th>
+              <th className="py-3 px-6 text-left">Phone</th>
+              <th className="py-3 px-6 text-left">Date</th>
+              <th className="py-3 px-6 text-left">Time</th>
+              <th className="py-3 px-6 text-left">Price</th>
+              <th className="py-3 px-6 text-left">Status</th>
+              <th className="py-3 px-6 text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredBookings.map((booking) => (
+              <tr
+                key={booking._id}
+                className="border-b hover:bg-gray-50 transition-colors"
+              >
+                <td className="py-3 px-6">{booking.customerName}</td>
+                <td className="py-3 px-6">{booking.email}</td>
+                <td className="py-3 px-6">{booking.address}</td>
+                <td className="py-3 px-6">{booking.serviceType}</td>
+                <td className="py-3 px-6">{booking.phone}</td>
+                <td className="py-3 px-6">
+                  {moment(booking.date).format("MMMM D, YYYY")}
+                </td>
+                <td className="py-3 px-6">
+                  {moment(booking.time, "HH:mm", true).isValid()
+                    ? moment(booking.time, "HH:mm").format("hh:mm A")
+                    : "Invalid time"}
+                </td>
+                <td className="py-3 px-6">{booking.price}</td>
+                <td className="py-3 px-6">
+                  {editingStatusId === booking._id ? (
+                    <select
+                      value={statusDraft}
+                      onChange={(e) => setStatusDraft(e.target.value)}
+                      className="p-1 border border-gray-300 rounded-md"
+                    >
+                      {["Pending", "Confirmed", "Completed", "Cancelled"].map(
+                        (status) => (
+                          <option key={status} value={status}>
+                            {status}
+                          </option>
+                        )
+                      )}
+                    </select>
+                  ) : (
+                    booking.status
+                  )}
+                </td>
+                <td className="py-3 px-6 flex gap-3 items-center">
+                  {editingStatusId === booking._id ? (
+                    <button
+                      onClick={() =>
+                        handleUpdateStatus(booking._id, statusDraft)
+                      }
+                      className="text-green-600 hover:text-green-700"
+                      title="Save"
+                    >
+                      <FiSave size={18} />
+                    </button>
+                  ) : (
+                    <>
                       <button
-                        onClick={() =>
-                          handleUpdateStatus(booking._id, statusDraft)
-                        }
-                        className="text-green-600 hover:text-green-700"
-                        title="Save"
+                        onClick={() => handleEdit(booking)}
+                        className="text-teal-600 hover:text-teal-700"
+                        title="Edit Booking"
                       >
-                        <FiSave />
+                        <FiEdit size={18} />
                       </button>
-                    ) : (
-                      <>
-                        <button
-                          onClick={() => handleEdit(booking)}
-                          className="text-teal-600 hover:text-teal-700"
-                        >
-                          <FiEdit />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(booking._id)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <FiTrash2 />
-                        </button>
-                        <button
-                          onClick={() => {
-                            setEditingStatusId(booking._id);
-                            setStatusDraft(booking.status);
-                          }}
-                          className="text-gray-600 hover:text-gray-800"
-                          title="Change Status"
-                        >
-                          <FiCheck />
-                        </button>
-                      </>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                      <button
+                        onClick={() => handleDelete(booking._id)}
+                        className="text-red-600 hover:text-red-700"
+                        title="Delete Booking"
+                      >
+                        <FiTrash2 size={18} />
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingStatusId(booking._id);
+                          setStatusDraft(booking.status);
+                        }}
+                        className="text-gray-600 hover:text-gray-800"
+                        title="Change Status"
+                      >
+                        <FiCheck size={18} />
+                      </button>
+                    </>
+                  )}
+                </td>
+              </tr>
+            ))}
+            {filteredBookings.length === 0 && (
+              <tr>
+                <td colSpan={10} className="text-center py-6 text-gray-500">
+                  No bookings found
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
 
-          {isFormOpen && (
-            <BookingForm
-              booking={selectedBooking}
-              onClose={handleCloseForm}
-              onSubmit={handleSubmit}
-            />
-          )}
-        </div>
-      </div>
-    </>
+        {isFormOpen && (
+          <BookingForm
+            booking={selectedBooking}
+            onClose={handleCloseForm}
+            onSubmit={handleSubmit}
+          />
+        )}
+      </main>
+    </div>
   );
 };
 

@@ -122,6 +122,8 @@ export default function AddBooking({
         time: "",
         serviceType: SERVICE_TYPES[0].name,
       });
+
+      window.location.reload();
     } catch (err) {
       const message =
         err?.response?.data?.message ||
