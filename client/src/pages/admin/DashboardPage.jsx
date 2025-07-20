@@ -1,21 +1,47 @@
 import { FiUsers, FiPackage, FiCalendar } from "react-icons/fi";
 import { motion } from "framer-motion";
 import Sidebar from "../../components/admin/Sidebar";
-import { useState, useEffect } from "react"; // For dynamic data fetching
+import { useState, useEffect } from "react";
+import { getAllUsers, getServices, getBookings } from "../../middlewares/api"; // Add this
 
 const DashboardPage = () => {
   const [userCount, setUserCount] = useState(0);
   const [serviceCount, setServiceCount] = useState(0);
   const [pendingBookings, setPendingBookings] = useState(0);
+  const [users, setUsers] = useState([]);
 
-  // Fetching data when the page loads
+  const fetchUsers = async () => {
+    try {
+      const { data } = await getAllUsers();
+      setUsers(data.users);
+      setUserCount(data.users.length);
+    } catch (error) {
+      console.error("Failed to fetch users:", error);
+    }
+  };
+
+  const fetchServices = async () => {
+    try {
+      const { data } = await getServices();
+      setServiceCount(data.services.length);
+    } catch (error) {
+      console.error("Failed to fetch services:", error);
+    }
+  };
+
+  const fetchBokking = async () => {
+    try {
+      const { data } = await getBookings();
+      setPendingBookings(data.bookings.length);
+    } catch (error) {
+      console.error("Failed to fetch bookings:", error);
+    }
+  };
+
   useEffect(() => {
-    // Simulating API call for demonstration
-    setTimeout(() => {
-      setUserCount(150); // Replace with API call
-      setServiceCount(10); // Replace with API call
-      setPendingBookings(5); // Replace with API call
-    }, 1000);
+    fetchUsers();
+    fetchBokking(); // Call fetchBookings to get the pending bookings count
+    fetchServices();
   }, []);
 
   return (
@@ -67,7 +93,7 @@ const DashboardPage = () => {
                 <h2 className="text-xl font-semibold">Pending Bookings</h2>
                 {/* If data is still loading, show a spinner */}
                 <p className="text-2xl font-bold">
-                  {pendingBookings === 0 ? "Loading..." : pendingBookings}
+                  {pendingBookings === 0 ? "0" : pendingBookings}
                 </p>
               </div>
             </div>

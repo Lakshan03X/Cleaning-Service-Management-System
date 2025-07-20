@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from "react";
 import ServiceForm from "../../components/admin/ServiceForm";
-import { getServices, createService, updateService, deleteServiceById } from "../../middlewares/api";
+import Sidebar from "../../components/admin/Sidebar";
+import {
+  getServices,
+  createService,
+  updateService,
+  deleteServiceById,
+} from "../../middlewares/api";
 import { toast } from "react-hot-toast";
 
 const ServiceTable = () => {
@@ -52,7 +58,9 @@ const ServiceTable = () => {
       if (selectedService) {
         const { data } = await updateService(selectedService._id, formData);
         setServices((prev) =>
-          prev.map((s) => (s._id === selectedService._id ? data.updatedService : s))
+          prev.map((s) =>
+            s._id === selectedService._id ? data.updatedService : s
+          )
         );
         toast.success("Service updated successfully");
       } else {
@@ -76,65 +84,72 @@ const ServiceTable = () => {
   );
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <input
-          type="text"
-          placeholder="Search by service name"
-          value={searchQuery}
-          onChange={handleSearch}
-          className="p-2 border border-gray-300 rounded"
-        />
-        <button
-          onClick={() => setIsFormOpen(true)}
-          className="bg-green-500 text-white p-2 rounded"
-        >
-          Add Service
-        </button>
+    <>
+      <div className="flex">
+        <div>
+          <Sidebar />
+        </div>
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-4">
+            <input
+              type="text"
+              placeholder="Search by service name"
+              value={searchQuery}
+              onChange={handleSearch}
+              className="p-2 border border-gray-300 rounded"
+            />
+            <button
+              onClick={() => setIsFormOpen(true)}
+              className="bg-green-500 text-white p-2 rounded"
+            >
+              Add Service
+            </button>
+          </div>
+
+          <table className="min-w-full table-auto">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="p-2 border-b">Service Name</th>
+                <th className="p-2 border-b">Description</th>
+                <th className="p-2 border-b">Price</th>
+                <th className="p-2 border-b">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredServices.map((service) => (
+                <tr key={service._id}>
+                  <td className="p-2 border-b">{service.serviceName}</td>
+                  <td className="p-2 border-b">{service.description}</td>
+                  <td className="p-2 border-b">${service.price}</td>
+                  <td className="p-2 border-b">
+                    <button
+                      onClick={() => handleEdit(service)}
+                      className="bg-yellow-500 text-white p-2 rounded mr-2"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(service._id)}
+                      className="bg-red-500 text-white p-2 rounded"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {isFormOpen && (
+            <ServiceForm
+              service={selectedService}
+              onClose={handleCloseForm}
+              onSubmit={handleSubmit}
+            />
+          )}
+        </div>
       </div>
-
-      <table className="min-w-full table-auto">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="p-2 border-b">Service Name</th>
-            <th className="p-2 border-b">Description</th>
-            <th className="p-2 border-b">Price</th>
-            <th className="p-2 border-b">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredServices.map((service) => (
-            <tr key={service._id}>
-              <td className="p-2 border-b">{service.serviceName}</td>
-              <td className="p-2 border-b">{service.description}</td>
-              <td className="p-2 border-b">${service.price}</td>
-              <td className="p-2 border-b">
-                <button
-                  onClick={() => handleEdit(service)}
-                  className="bg-yellow-500 text-white p-2 rounded mr-2"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(service._id)}
-                  className="bg-red-500 text-white p-2 rounded"
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {isFormOpen && (
-        <ServiceForm
-          service={selectedService}
-          onClose={handleCloseForm}
-          onSubmit={handleSubmit}
-        />
-      )}
-    </div>
+    </>
   );
 };
 
