@@ -154,12 +154,12 @@ function LoginForm() {
         <div className="text-center text-sm text-gray-600">
           <p>
             Don&apos;t have an account?{" "}
-            <a
-              href="/register"
+            <Link
+              to="/register"
               className="text-indigo-600 hover:underline font-medium"
             >
               Sign up
-            </a>
+            </Link>
           </p>
         </div>
       </div>
