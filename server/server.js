@@ -14,24 +14,34 @@ const app = express();
 
 app.set("trust proxy", 1);
 
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL,
-    credentials: true,
-  })
-);
+// ✅ Use environment variables for allowed origins
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  process.env.PROD_CLIENT_URL
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+}));
 
 app.use(express.json());
 
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "yourSecretKey",
+    secret: process.env.SESSION_SECRET || "defaultSecret",
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: false, // true in production with HTTPS
-      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 1000 * 60 * 60 * 24,
     },
   })
@@ -40,19 +50,15 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Routes
 app.use("/auth", authRoutes);
 app.use("/service", serviceRoute);
 app.use("/booking", bookingRoute);
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL, 
-    credentials: true, 
-  })
-);
 
+// Start server
 const PORT = process.env.PORT || 5001;
 connectDB().then(() => {
   app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
+    console.log(`🚀 Server running at http://localhost:${PORT}`);
   });
 });
