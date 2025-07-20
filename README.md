@@ -46,11 +46,10 @@ This web application allows users to book various cleaning services and manage t
 
 ## Technologies Used
 
-- **Frontend:** [Specify your frontend framework, e.g., React, Angular, Vue]  
-- **Backend:** [Specify your backend framework, e.g., Node.js, Django, Flask]  
-- **Database:** [Specify your database, e.g., MongoDB, PostgreSQL, MySQL]  
+- **Frontend:** [React]  
+- **Backend:** [Node.js]  
+- **Database:** [MongoDB]  
 - **Authentication:** Google OAuth and Email/Password  
-- **Others:** [List any other libraries, APIs, or tools used]
 
 ---
 
