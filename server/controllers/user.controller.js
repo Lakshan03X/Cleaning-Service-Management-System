@@ -1,12 +1,12 @@
 import bcrypt from "bcryptjs";
-import { generateToken } from "../../middleware/auth/generateToken.js";
-import UserModel from "../../models/auth/user.model.js";
+import { generateToken } from "../middlewares/generateToken.js";
+import UserModel from "../models/user.model.js";
 
 // User Registration
 export const registerUser = async (req, res) => {
-  const { email, fullName, address, phone, password, dob, gender } = req.body;
+  const { email, fullName, address, phone, password, gender, role } = req.body;
 
-  if (!email || !fullName || !address || !password || !dob) {
+  if (!email || !fullName || !address || !password || !gender) {
     return res.status(400).json({
       success: false,
       message: "Please provide all required fields",
@@ -14,7 +14,7 @@ export const registerUser = async (req, res) => {
   }
 
   try {
-    let userExists = await UserModel.findOne({ email });
+    const userExists = await UserModel.findOne({ email });
     if (userExists) {
       return res.status(409).json({
         success: false,
@@ -41,9 +41,9 @@ export const registerUser = async (req, res) => {
       fullName,
       address,
       phone,
-      password, // Password will be hashed in the schema itself
-      dob,
+      password,
       gender,
+      role: role || "User", // default to "User" if not provided
     });
 
     await newUser.save();
@@ -53,7 +53,7 @@ export const registerUser = async (req, res) => {
       message: "User registered successfully",
     });
   } catch (err) {
-    console.error("Error:", err); // Improved error logging
+    console.error("Registration Error:", err);
     if (err.code === 11000) {
       return res.status(409).json({
         success: false,
@@ -71,6 +71,7 @@ export const registerUser = async (req, res) => {
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
+  // Check for missing input
   if (!email || !password) {
     return res.status(400).json({
       success: false,
@@ -79,6 +80,7 @@ export const loginUser = async (req, res) => {
   }
 
   try {
+    // Check if user exists
     const user = await UserModel.findOne({ email });
 
     if (!user) {
@@ -88,7 +90,9 @@ export const loginUser = async (req, res) => {
       });
     }
 
+    // Compare passwords
     const isMatch = await bcrypt.compare(password, user.password);
+
     if (!isMatch) {
       return res.status(401).json({
         success: false,
@@ -96,10 +100,10 @@ export const loginUser = async (req, res) => {
       });
     }
 
-    // Generate Token using the helper function
+    // Generate JWT token
     const token = generateToken(user);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Login successful",
       token,
@@ -107,11 +111,12 @@ export const loginUser = async (req, res) => {
         id: user._id,
         fullName: user.fullName,
         email: user.email,
+        role: user.role,
       },
     });
   } catch (err) {
     console.error("Login Error:", err.message);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Server Error",
     });
@@ -127,7 +132,7 @@ export const getAllUsers = async (req, res) => {
       users,
     });
   } catch (err) {
-    console.error("Error:", err.message);
+    console.error("Get Users Error:", err.message);
     res.status(500).json({
       success: false,
       message: "Server Error",
@@ -140,7 +145,6 @@ export const getUserById = async (req, res) => {
   const { id } = req.params;
   try {
     const user = await UserModel.findById(id);
-
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -153,7 +157,7 @@ export const getUserById = async (req, res) => {
       user,
     });
   } catch (err) {
-    console.error("Error:", err.message);
+    console.error("Get User By ID Error:", err.message);
     res.status(500).json({
       success: false,
       message: "Server Error",
@@ -167,7 +171,6 @@ export const deleteUser = async (req, res) => {
 
   try {
     const user = await UserModel.findByIdAndDelete(id);
-
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -180,7 +183,7 @@ export const deleteUser = async (req, res) => {
       message: "User deleted successfully!",
     });
   } catch (err) {
-    console.error("Error:", err.message);
+    console.error("Delete User Error:", err.message);
     res.status(500).json({
       success: false,
       message: "Server Error",
@@ -191,11 +194,10 @@ export const deleteUser = async (req, res) => {
 // Update user details
 export const updateUser = async (req, res) => {
   const { id } = req.params;
-  const { email, fullName, address, phone, password, dob, gender } = req.body;
+  const { email, fullName, address, phone, password, gender, role } = req.body;
 
   try {
-    let user = await UserModel.findById(id);
-
+    const user = await UserModel.findById(id);
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -203,10 +205,10 @@ export const updateUser = async (req, res) => {
       });
     }
 
-    if (phone && phone.length < 10) {
+    if (phone && !/^\d{10}$/.test(phone)) {
       return res.status(400).json({
         success: false,
-        message: "Phone number must be at least 10 digits!",
+        message: "Phone number must be exactly 10 digits!",
       });
     }
 
@@ -218,15 +220,16 @@ export const updateUser = async (req, res) => {
     }
 
     if (password) {
-      user.password = password;
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(password, salt);
     }
 
     user.email = email || user.email;
     user.fullName = fullName || user.fullName;
     user.address = address || user.address;
     user.phone = phone || user.phone;
-    user.dob = dob || user.dob;
     user.gender = gender || user.gender;
+    user.role = role || user.role; // allow role updates
 
     await user.save();
 
@@ -236,7 +239,7 @@ export const updateUser = async (req, res) => {
       user,
     });
   } catch (err) {
-    console.error("Error:", err.message);
+    console.error("Update User Error:", err.message);
     res.status(500).json({
       success: false,
       message: "Server Error",
